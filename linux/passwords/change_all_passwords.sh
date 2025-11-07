@@ -72,7 +72,7 @@ exclude_users() {
     local users=("$@")
     local temp_users=()
     
-    for user in "${users_to_change[@]}"; do
+    for user in "${users[@]}"; do
         if is_excluded "$user" "${excluded_from_pw_change[@]}"; then
             echo "Skipping user: $user"
         else
