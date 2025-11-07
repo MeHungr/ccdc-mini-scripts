@@ -14,7 +14,7 @@ password_flag_value=""
 # ==========================
 
 # Read users with a login shell from /etc/passwd into $users_to_change array
-mapfile users < <(awk -F: '$7 !~ /(nologin|false)/ {print $1}' /etc/passwd)
+mapfile -t users < <(awk -F: '$7 !~ /(nologin|false)/ {print $1}' /etc/passwd)
 
 # parse_arguments parses command-line arguments and writes to variables
 #
@@ -80,7 +80,7 @@ exclude_users() {
         fi
     done
 
-    return "${temp_users[@]}"
+    printf '%s\n' "${temp_users[@]}"
 }
 
 # change_passwords handles changing the passwords for users
@@ -92,8 +92,8 @@ exclude_users() {
 # Returns array of users who failed
 change_passwords() {
     local password="$1"
+    shift
     local users_to_change=("$@")
-    local failed_users=()
     for user in "${users_to_change[@]}"; do
         if is_excluded "$user" "${excluded_from_pw_change[@]}"; then
             echo "Skipping user: $user"
@@ -103,11 +103,9 @@ change_passwords() {
                 echo "Password changed for user: $user"
             else
                 echo "Failed to change password for user: $user"
-                failed_users+=("$user")
             fi
         fi
     done
-    return "${failed_users[@]}"
 }
 
 # confirm_changes prompts the user for confirmation before changing passwords
@@ -162,7 +160,7 @@ main() {
         fi
     fi
 
-    local users_to_change=("$(exclude_users "${users[@]}")")
+    mapfile -t users_to_change < <(exclude_users "${users[@]}")
 
     if [ "$headless" = false ]; then
         confirm_changes "${users_to_change[@]}"
