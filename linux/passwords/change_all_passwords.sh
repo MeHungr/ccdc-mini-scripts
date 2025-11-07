@@ -5,7 +5,7 @@
 
 # ===== Config =====
 # Users to exclude from password change
-excluded_from_pw_change=("whiteteam" "grayteam" "blackteam" "datadog" "dd-dog" "dd-agent")
+excluded_from_pw_change=("whiteteam" "grayteam" "blackteam" "datadog" "dd-dog" "dd-agent" "sync")
 # ==================
 
 # ===== Flag variables =====
