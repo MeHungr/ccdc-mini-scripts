@@ -1,17 +1,16 @@
 #!/bin/bash
 
-# change_all_passwords.sh - Script to change the passwords of all users with a login shell
-# Usage: ./change_all_passwords.sh
+# lock_users.sh - Script to lock users
+# Usage: ./lock_users.sh
 #   -p <password>: headless mode; requires a password
 
 # ===== Config =====
-# Users to exclude from password change
-excluded_from_pw_change=("whiteteam" "grayteam" "blackteam" "datadog" "dd-dog" "dd-agent" "sync")
+# Users to exclude from lock
+excluded_from_lock=("whiteteam" "grayteam" "blackteam" "datadog" "dd-dog" "dd-agent" "sync")
 # ==================
 
 # ===== Flag variables =====
 headless=false
-password_flag_value=""
 # ==========================
 
 # Read users with a login shell from /etc/passwd into $users_to_change array
@@ -23,11 +22,10 @@ mapfile -t users < <(awk -F: '$7 !~ /(nologin|false)/ {print $1}' /etc/passwd)
 #
 # Returns nothing
 parse_arguments() {
-    while getopts h: opt; do
+    while getopts h opt; do
         case $opt in
             h)
                 headless=true
-                password_flag_value="$OPTARG"
                 ;;
             ?)
                 echo "Invalid option: -$OPTARG" >&2
@@ -41,7 +39,7 @@ parse_arguments() {
     done
 }
 
-# is_excluded determines if a user is excluded from the password change or not
+# is_excluded determines if a user is excluded from locking or not
 #
 # Takes two arguments:
 #   $1 - user to check
@@ -72,7 +70,7 @@ exclude_users() {
     local temp_users=()
     
     for user in "${users[@]}"; do
-        if ! is_excluded "$user" "${excluded_from_pw_change[@]}"; then
+        if ! is_excluded "$user" "${excluded_from_lock[@]}"; then
             temp_users+=("$user")
         fi
     done
@@ -80,35 +78,32 @@ exclude_users() {
     printf '%s\n' "${temp_users[@]}"
 }
 
-# change_passwords handles changing the passwords for users
+# lock_users handles locking users
 #
 # Takes two arguments:
-#   $1 - password to change to
-#   $2 - array of users whose passwords should be changed
+#   $1 - array of users to be locked
 #
 # Returns array of users who failed
-change_passwords() {
-    local password="$1"
-    shift
+lock_users() {
     local users_to_change=("$@")
     for user in "${users_to_change[@]}"; do
-        if is_excluded "$user" "${excluded_from_pw_change[@]}"; then
+        if is_excluded "$user" "${excluded_from_lock[@]}"; then
             echo "Skipping user: $user"
         else
-            echo "$user:$password" | chpasswd
+            passwd -l "$user"
             if [ $? -eq 0 ]; then
-                echo "Password changed for user: $user"
+                echo "Locked user: $user"
             else
-                echo "Failed to change password for user: $user"
+                echo "Failed to lock user: $user"
             fi
         fi
     done
 }
 
-# confirm_changes prompts the user for confirmation before changing passwords
+# confirm_changes prompts the user for confirmation before locking
 #
 # Takes one argument:
-#   $1 - users whose passwords will be changed
+#   $1 - users who will be locked
 #
 # Returns nothing
 #
@@ -116,7 +111,7 @@ change_passwords() {
 confirm_changes() {
     local users_to_change=("$@")
 
-    echo "The following users will have their passwords changed:"
+    echo "The following users will be locked:"
     for user in "${users_to_change[@]}"; do
         echo "- $user"
     done
@@ -129,8 +124,6 @@ confirm_changes() {
 }
 
 main() {
-    local password
-
     # Only run script as root
     if [ "$EUID" -ne 0 ]; then
         echo "This script must be run as root. Exiting..."
@@ -139,27 +132,13 @@ main() {
 
     parse_arguments
 
-    if [ "$headless" = true ]; then
-        password="$password_flag_value"
-    else
-        read -rsp "Enter the new password: " password
-        echo
-        read -rsp "Confirm the new password: " password_confirm
-        echo
-
-        if [ "$password" != "$password_confirm" ]; then
-            echo "Passwords do not match! Exiting..."
-            exit 1
-        fi
-    fi
-
     mapfile -t users_to_change < <(exclude_users "${users[@]}")
 
     if [ "$headless" = false ]; then
         confirm_changes "${users_to_change[@]}"
     fi
     
-    change_passwords "$password" "${users_to_change[@]}"
+    lock_users "${users_to_change[@]}"
 }
 
 main
