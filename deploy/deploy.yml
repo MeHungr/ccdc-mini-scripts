@@ -3,6 +3,13 @@
   become: true
   tasks:
 
+    - name: Delete .git directory on localhost
+      ansible.builtin.file:
+        path: /home/drwho/ccdc-mini-scripts/.git
+        state: absent
+      delegate_to: localhost
+      run_once: true
+
     - name: Copy repo
       ansible.builtin.copy:
         src: /home/drwho/ccdc-mini-scripts
