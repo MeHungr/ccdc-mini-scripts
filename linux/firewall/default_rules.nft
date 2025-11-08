@@ -1,0 +1,31 @@
+#!/usr/sbin/nft -f
+
+table inet filter {
+    chain input {
+        type filter hook input priority 0;
+        policy drop;
+
+        ct state established,related accept
+        iif "lo" accept
+        # FTP data, FTP control, SSH, HTTP, HTTPS, SQL, Wazuh comm, Wazuh enrollment, Wazuh enrollment API
+        tcp dport { 20, 21, 22, 80, 443, 3306, 1514, 1515, 55000 } accept
+        # Passive FTP Ports---If FTP is broken, uncomment this rule
+        tcp dport 40000-40100 accept
+        # ICMP ping
+        ip protocol icmp accept
+
+        log prefix "nftables-drop-input: " flags all
+    }
+
+    chain forward {
+        type filter hook forward priority 0;
+        policy drop;
+
+        log prefix "nftables-drop/forward: " flags all
+    }
+
+    chain output {
+        type filter hook output priority 0;
+        policy accept;
+    }
+}

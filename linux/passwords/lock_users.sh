@@ -2,7 +2,7 @@
 
 # lock_users.sh - Script to lock users
 # Usage: ./lock_users.sh
-#   -p <password>: headless mode; requires a password
+#   -l: runs the script in headless mode
 
 # ===== Config =====
 # Users to exclude from lock
@@ -22,9 +22,9 @@ mapfile -t users < <(awk -F: '$7 !~ /(nologin|false)/ {print $1}' /etc/passwd)
 #
 # Returns nothing
 parse_arguments() {
-    while getopts h opt; do
+    while getopts l opt; do
         case $opt in
-            h)
+            l)
                 headless=true
                 ;;
             ?)
@@ -64,7 +64,7 @@ is_excluded() {
 # Takes one argument:
 #   $1 - array of users to check against
 #
-# Returns the array of users to be modified
+# Prints the array of users to be modified
 exclude_users() {
     local users=("$@")
     local temp_users=()
@@ -83,7 +83,7 @@ exclude_users() {
 # Takes two arguments:
 #   $1 - array of users to be locked
 #
-# Returns array of users who failed
+# Returns nothing
 lock_users() {
     local users_to_change=("$@")
     for user in "${users_to_change[@]}"; do

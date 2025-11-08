@@ -2,7 +2,7 @@
 
 # change_all_passwords.sh - Script to change the passwords of all users with a login shell
 # Usage: ./change_all_passwords.sh
-#   -p <password>: headless mode; requires a password
+#   -l <password>: headless mode; requires a password
 
 # ===== Config =====
 # Users to exclude from password change
@@ -23,9 +23,9 @@ mapfile -t users < <(awk -F: '$7 !~ /(nologin|false)/ {print $1}' /etc/passwd)
 #
 # Returns nothing
 parse_arguments() {
-    while getopts h: opt; do
+    while getopts l: opt; do
         case $opt in
-            h)
+            l)
                 headless=true
                 password_flag_value="$OPTARG"
                 ;;
@@ -66,7 +66,7 @@ is_excluded() {
 # Takes one argument:
 #   $1 - array of users to check against
 #
-# Returns the array of users to be modified
+# Prints the array of users to be modified
 exclude_users() {
     local users=("$@")
     local temp_users=()
@@ -86,7 +86,7 @@ exclude_users() {
 #   $1 - password to change to
 #   $2 - array of users whose passwords should be changed
 #
-# Returns array of users who failed
+# Returns nothing
 change_passwords() {
     local password="$1"
     shift
