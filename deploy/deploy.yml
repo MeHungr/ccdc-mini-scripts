@@ -1,0 +1,9 @@
+- name: Copy repo to other hosts
+  hosts: linux
+  become: true
+  tasks:
+
+    - name: Copy repo
+      ansible.builtin.copy:
+        src: /home/drwho/ccdc-mini-scripts
+        dest: /home/drwho/ccdc-mini-scripts

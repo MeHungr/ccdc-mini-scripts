@@ -6,7 +6,7 @@
 
 # ===== Config =====
 # Users to exclude from lock
-excluded_from_lock=("whiteteam" "grayteam" "blackteam" "datadog" "dd-dog" "dd-agent" "sync")
+excluded_from_lock=("whiteteam" "grayteam" "blackteam" "datadog" "dd-dog" "dd-agent" "sync" "drwho" "martymcfly" "arthurdent" "sambeckett" "loki" "riphunter" "theflash" "tonystark" "drstrange" "bartallen")
 # ==================
 
 # ===== Flag variables =====
