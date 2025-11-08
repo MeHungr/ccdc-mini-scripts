@@ -71,7 +71,7 @@ find_unauthorized_users() {
 find_user_cron_jobs() {
     for user in $(cut -d: -f1 /etc/passwd); do
         if crontab -l -u "$user" > /dev/null 2>&1; then
-            printf "%6s- $user has a non-empty crontab:\n%10s%s\n" "" "" "$(crontab -l -u "$user" 2>/dev/null)"
+            printf "%6s- $user has a non-empty crontab:\n%s\n" "" "$(crontab -l -u "$user" 2>/dev/null | sed 's/^/          /g')"
         fi
     done
 }
