@@ -197,7 +197,8 @@ apply_default_ruleset() {
         read -rp "Update ruleset to default configuration? (y/N): " update
 
         if [[ "${update,,}" != "y" ]]; then
-            echo -e "${red}Leaving firewall ruleset as is${reset}"
+            echo -e "${red}Restoring firewall ruleset to backup${reset}"
+            restore_rules_from_backup
             exit 10
         fi
 
