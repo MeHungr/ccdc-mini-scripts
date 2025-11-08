@@ -171,7 +171,7 @@ restore_rules_from_backup() {
 #
 # Prints the normalized text
 normalize_diff() {
-    sed 's/\s\+/ /g; s/^ *//g; s/ *$//' | tr -d '\t' | sed '/^#/d; /^$/d'
+    sed 's/\s\+/ /g; s/^ *//g; s/ *$//; /^#/d; /^$/d; s/priority filter/priority 0/g; s/\npolicy/policy/g' | tr -d '\t'
 }
 
 # apply_default_ruleset applies a default nftables ruleset
