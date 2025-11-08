@@ -230,3 +230,5 @@ main() {
 
     apply_default_ruleset
 }
+
+main
