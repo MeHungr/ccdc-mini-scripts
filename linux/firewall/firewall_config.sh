@@ -102,17 +102,6 @@ install_nftables() {
     esac
 }
 
-# verify_nft_intallation checks that nftables is installed and installs it if not
-#
-# Takes no arguments
-#
-# Returns nothing
-verify_nft_installation() {
-    if ! command -v nft > /dev/null 2>&1; then
-        install_nftables
-    fi
-}
-
 # enable_nftables enables and restarts the nftables service
 #
 # Takes no arguments
@@ -121,6 +110,18 @@ verify_nft_installation() {
 enable_nftables() {
     systemctl enable --now nftables
     systemctl restart nftables
+}
+
+# verify_nft_intallation checks that nftables is installed and installs it if not
+#
+# Takes no arguments
+#
+# Returns nothing
+verify_nft_installation() {
+    if ! command -v nft > /dev/null 2>&1; then
+        install_nftables
+        enable_nftables
+    fi
 }
 
 # flush_ruleset flushes the current nftables ruleset and backs up existing ones
@@ -137,16 +138,95 @@ flush_ruleset() {
     nft flush ruleset
 }
 
+# save_current_ruleset saves the in-memory nftables ruleset into the config file located at /etc/nftables.conf
+#
+# Takes no arguments
+#
+# Returns nothing
+save_current_ruleset() {
+    echo -e "${green}Saving current ruleset to /etc/nftables.conf...${reset}"
+    nft list ruleset > /etc/nftables.conf
+}
+
+# restore_rules_from_backup restores the firewall rules from the backup located at /etc/nftables.backup
+#
+# Takes no arguments
+#
+# Returns 0 on success, 1 if file doesn't exist
+restore_rules_from_backup() {
+    if [ -f /etc/nftables.backup ]; then
+        echo -e "${yellow}Restoring ruleset from /etc/nftables.backup...${reset}"
+        nft flush ruleset
+        nft -f /etc/nftables.backup
+        echo -e "${green}Restored successfully.${reset}"
+    else
+        echo -e "${red}No backup file found at /etc/nftables.backup${reset}"
+        return 1
+    fi
+}
+
 # apply_default_ruleset applies a default nftables ruleset
+#
+# Takes no arguments
+#
+# Returns nothing
 apply_default_ruleset() {
 
     if nft list ruleset | grep -q 'table'; then
         echo -e "${yellow}Warning: Existing nftables rules detected. Backing them up to /etc/nftables.backup${reset}"
         nft list ruleset > /etc/nftables.backup
     fi
-    
+ 
+    if [ ! -f /etc/nftables.backup ]; then
+        echo -e "${yellow}Warning: No backup file detected. Backing up nftables rules to /etc/nftables.backup${reset}"
+        nft list ruleset > /etc/nftables.backup
+    fi   
+
     if [ "$headless" = true ]; then
         echo -e "${green}[HEADLESS] Applying default ruleset...${reset}"
         nft -f "$rules_file"
+        save_current_ruleset
+        return
     fi
+
+    # diff returns 0 on success
+    if diff -q <(nft list ruleset) <(tail -n +2 "$rules_file"); then
+        echo -e "${green}Current ruleset matches default ruleset.${reset}"
+    else
+        diff -u <(nft list ruleset) <(tail -n +2 "$rules_file")
+        read -rp "Update ruleset to default configuration? (y/N): " update
+
+        if [[ "${update,,}" != "y" ]]; then
+            echo -e "${red}Leaving firewall ruleset as is${reset}"
+            exit 10
+        fi
+
+        echo -e "${green}Applying basic default nftables ruleset...${reset}"
+        nft -f "$rules_file"
+    fi
+
+    # Dead man's switch
+    echo -e "${green}[DMS] Press CTRL + C to persist the ruleset. Failure to do so will result in a rollback for lockout protection.${reset}"
+    # Persist changes on SIGINT (Ctrl + C)
+    trap 'echo -e "${green}[DMS] SIGINT received. Persisting ruleset...${reset}"; nft list ruleset > /etc/nftables.conf; return;' SIGINT
+    # Wait 15 seconds for SIGINT
+    sleep 15
+
+    echo -e "${red}[DMS] No persist signal received. Rolling back firewall ruleset...${reset}"
+    restore_rules_from_backup
+    save_current_ruleset
+    
+}
+
+# main entrypoint
+main() {
+    verify_root
+
+    parse_arguments
+
+    verify_nft_installation
+
+    flush_ruleset
+
+    apply_default_ruleset
 }
