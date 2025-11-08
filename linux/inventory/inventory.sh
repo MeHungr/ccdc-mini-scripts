@@ -106,7 +106,7 @@ find_authorized_keys() {
         printf "%6s- $user authorized hosts:\n%s\n" "" "$(sed 's/^/          /g' "$keys_path")"
     done
     if [[ -e "/root/.ssh/authorized_keys" || -s "/root/.ssh/authorized_keys" ]]; then
-        printf "%6s- root authorized hosts:\n%s\n" "" "$(sed 's/^/          /g' "$/root/.ssh/authorized_keys")"
+        printf "%6s- root authorized hosts:\n%s\n" "" "$(sed 's/^/          /g' "/root/.ssh/authorized_keys")"
     fi
 }
 
