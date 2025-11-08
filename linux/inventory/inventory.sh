@@ -117,7 +117,7 @@ find_authorized_keys() {
 # Prints the protocol, port, and process name
 find_listening_ports() {
     while IFS= read -r sock; do
-        port="$(awk '{ print $5 }' <<< "$sock" | cut -d: -f2)"
+        port="$(awk '{ print $5 }' <<< "$sock" | rev | cut -d: -f1 | rev)"
         proto="$(awk '{ print $1 }' <<< "$sock")"
         procname="$(awk '{ print $7 }' <<< "$sock" | cut -d\" -f2)"
         printf "%6s- port being listened on:\n%10s%s\n" "" "" "$proto on port :${port} as $procname"
