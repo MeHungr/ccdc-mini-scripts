@@ -110,6 +110,20 @@ find_authorized_keys() {
     fi
 }
 
+# find_listening_ports lists all ports being listened on, what protocol, and the process name
+#
+# Takes no arguments
+#
+# Prints the protocol, port, and process name
+find_listening_ports() {
+    while IFS= read -r sock; do
+        port="$(awk '{ print $5 }' <<< "$sock" | cut -d: -f2)"
+        proto="$(awk '{ print $1 }' <<< "$sock")"
+        procname="$(awk '{ print $7 }' <<< "$sock" | cut -d\" -f2)"
+        printf "%6s- port being listened on:\n%10s%s\n" "" "" "$proto on port :${port} as $procname"
+    done <<< "$(ss -tulnp | tail -n +2)"
+}
+
 # format_print sets the printf format for the inventory printing
 #
 # Takes any number of arguments representing the fields to print:
@@ -150,6 +164,8 @@ print_inventory() {
     find_system_cron_jobs
     print_category "Authorized keys"
     find_authorized_keys
+    print_category "Listening ports"
+    find_listening_ports
     echo -e "${bold}==========================================${reset}"
 }
 
