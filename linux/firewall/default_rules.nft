@@ -7,7 +7,7 @@ table inet filter {
         ct state established,related accept
         iif "lo" accept
         # FTP data, FTP control, SSH, HTTP, HTTPS, SQL, Wazuh comm, Wazuh enrollment, Wazuh enrollment API
-        tcp dport { 20, 21, 22, 80, 443, 3306, 1514, 1515, 55000 } accept
+        tcp dport { 20, 21, 22, 80, 443, 1514, 1515, 3306, 55000 } accept
         # Passive FTP Ports---If FTP is broken, uncomment this rule
         tcp dport 40000-40100 accept
         # ICMP ping
