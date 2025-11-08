@@ -4,7 +4,6 @@ table inet filter {
     chain input {
         type filter hook input priority 0;
         policy drop;
-
         ct state established,related accept
         iif "lo" accept
         # FTP data, FTP control, SSH, HTTP, HTTPS, SQL, Wazuh comm, Wazuh enrollment, Wazuh enrollment API
@@ -13,14 +12,12 @@ table inet filter {
         tcp dport 40000-40100 accept
         # ICMP ping
         ip protocol icmp accept
-
         log prefix "nftables-drop-input: " flags all
     }
 
     chain forward {
         type filter hook forward priority 0;
         policy drop;
-
         log prefix "nftables-drop/forward: " flags all
     }
 

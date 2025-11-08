@@ -193,7 +193,7 @@ apply_default_ruleset() {
     if diff -q /etc/nftables.backup <(tail -n +2 "$rules_file" | sed '/^\s*#/d'); then
         echo -e "${green}Current ruleset matches default ruleset.${reset}"
     else
-        diff -u --label "current_ruleset" /etc/nftables.backup --label "default_ruleset" <(tail -n +2 "$rules_file")
+        diff -u --label "current_ruleset" /etc/nftables.backup --label "default_ruleset" <(tail -n +2 "$rules_file" | sed '/^\s*#/d')
         read -rp "Update ruleset to default configuration? (y/N): " update
 
         if [[ "${update,,}" != "y" ]]; then
