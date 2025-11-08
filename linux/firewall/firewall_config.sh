@@ -165,6 +165,15 @@ restore_rules_from_backup() {
     fi
 }
 
+# normalize_diff normalizes the output of listing nft rulesets for diff to work properly
+#
+# Takes no arguments; reads from stdin
+#
+# Prints the normalized text
+normalize_diff() {
+    sed 's/\s\+/ /g; s/^ *//g; s/ *$//' | tr -d '\t' | sed '/^#/d; /^$/d'
+}
+
 # apply_default_ruleset applies a default nftables ruleset
 #
 # Takes no arguments
@@ -190,10 +199,10 @@ apply_default_ruleset() {
     fi
 
     # diff returns 0 on success
-    if diff -q /etc/nftables.backup <(tail -n +2 "$rules_file" | sed '/^\s*#/d'); then
+    if diff -q /etc/nftables.backup <(tail -n +2 "$rules_file" | normalize_diff); then
         echo -e "${green}Current ruleset matches default ruleset.${reset}"
     else
-        diff -u --label "current_ruleset" /etc/nftables.backup --label "default_ruleset" <(tail -n +2 "$rules_file" | sed '/^\s*#/d')
+        diff -u --label "current_ruleset" /etc/nftables.backup --label "default_ruleset" <(tail -n +2 "$rules_file" | normalize_diff)
         read -rp "Update ruleset to default configuration? (y/N): " update
 
         if [[ "${update,,}" != "y" ]]; then
