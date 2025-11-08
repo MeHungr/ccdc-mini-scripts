@@ -212,6 +212,7 @@ apply_default_ruleset() {
         fi
 
         echo -e "${green}Applying basic default nftables ruleset...${reset}"
+        flush_ruleset
         nft -f "$rules_file"
     fi
 
@@ -235,8 +236,6 @@ main() {
     parse_arguments
 
     verify_nft_installation
-
-    flush_ruleset
 
     apply_default_ruleset
 }
