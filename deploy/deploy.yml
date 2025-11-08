@@ -12,5 +12,5 @@
 
     - name: Copy repo
       ansible.builtin.copy:
-        src: /home/drwho/ccdc-mini-scripts
+        src: /home/drwho/ccdc-mini-scripts/
         dest: /home/drwho/ccdc-mini-scripts
