@@ -199,10 +199,10 @@ apply_default_ruleset() {
     fi
 
     # diff returns 0 on success
-    if diff -q <(cat /etc/nftables.backup | normalize_diff) <(tail -n +2 "$rules_file" | normalize_diff); then
+    if diff -q <(nft list ruleset | normalize_diff) <(tail -n +2 "$rules_file" | normalize_diff); then
         echo -e "${green}Current ruleset matches default ruleset.${reset}"
     else
-        diff -u --label "current_ruleset" <(cat /etc/nftables.backup | normalize_diff) --label "default_ruleset" <(tail -n +2 "$rules_file" | normalize_diff)
+        diff -u --label "current_ruleset" <(nft list ruleset | normalize_diff) --label "default_ruleset" <(tail -n +2 "$rules_file" | normalize_diff)
         read -rp "Update ruleset to default configuration? (y/N): " update
 
         if [[ "${update,,}" != "y" ]]; then
