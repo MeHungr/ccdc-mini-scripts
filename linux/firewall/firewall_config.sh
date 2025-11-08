@@ -193,7 +193,7 @@ apply_default_ruleset() {
     if diff -q <(nft list ruleset) <(tail -n +2 "$rules_file"); then
         echo -e "${green}Current ruleset matches default ruleset.${reset}"
     else
-        diff -u <(nft list ruleset) <(tail -n +2 "$rules_file")
+        diff -u --label "current_ruleset" <(nft list ruleset) --label "default_ruleset" <(tail -n +2 "$rules_file")
         read -rp "Update ruleset to default configuration? (y/N): " update
 
         if [[ "${update,,}" != "y" ]]; then
