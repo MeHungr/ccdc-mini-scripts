@@ -86,7 +86,7 @@ find_system_cron_jobs() {
         if [ -f "$location" ]; then
             printf "%6s- $location file contents:\n%s\n" "" "$(sed 's/^/          /g' "$location")"
         elif [ -d "$location" ]; then
-            printf "%6s- $location directory contents:\n%10s%s\n" "" "" "$(ls "$location")"
+            printf "%6s- $location directory contents:\n%s\n" "" "$(ls "$location" | sed 's/^/          /g')"
         fi
     done
 }
@@ -103,10 +103,10 @@ find_authorized_keys() {
         if [[ ! -e "$keys_path" || ! -s "$keys_path" ]]; then
             continue
         fi
-        printf "%6s- $user authorized hosts:\n%s\n" "" "$(sed 's/^/          /g' "$keys_path")"
+        printf "%6s- $user authorized keys:\n%s\n" "" "$(sed 's/^/          /g' "$keys_path")"
     done
     if [[ -e "/root/.ssh/authorized_keys" || -s "/root/.ssh/authorized_keys" ]]; then
-        printf "%6s- root authorized hosts:\n%s\n" "" "$(sed 's/^/          /g' "/root/.ssh/authorized_keys")"
+        printf "%6s- root authorized keys:\n%s\n" "" "$(sed 's/^/          /g' "/root/.ssh/authorized_keys")"
     fi
 }
 
